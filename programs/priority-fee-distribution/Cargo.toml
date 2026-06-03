@@ -1,0 +1,45 @@
+[package]
+name = "jito-priority-fee-distribution"
+version = "0.1.10"
+edition = "2021"
+license = "Apache-2.0"
+authors = ["Jito Network <team@jito.network>"]
+homepage = "https://jito.network"
+repository = "https://github.com/jito-foundation/jito-programs"
+description = "Priority fee distribution program, responsible for distributing funds to entitled parties."
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "jito_priority_fee_distribution"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+custom-heap = []
+custom-panic = []
+default = []
+idl-build = ["anchor-lang/idl-build"]
+anchor-debug = ["anchor-lang/anchor-debug"]
+
+# Pinned to cf-invariants-anchor's / cf-invariants-jito's CI-green stack:
+# anchor-lang 1.0.1 (matches Crucible v0.2.0 workspace).
+#
+# We drop the upstream direct `solana-program = "2.2"` pin. anchor-lang 1.0.1
+# supplies solana-program transitively via its modular solana-3.x interfaces
+# (covers the `system_instruction`, `program`, `native_token`, and
+# `clock` modules used by `transfer_priority_fee_tips` /
+# `initialize_priority_fee_distribution_account` / `claim` /
+# `close_*` instructions). The only solana_program submodule the 1.0.1
+# shim no longer re-exports is `hash` — replaced with the modular
+# `solana-sha256-hasher = "3"` crate (precedent: cf-invariants-jito
+# tip-distribution port). The `jito-programs-vote-state` crate is
+# vendored under `../vote-state` (same pattern as cf-invariants-jito).
+[dependencies]
+anchor-lang = "=1.0.1"
+jito-programs-vote-state = { path = "../vote-state", version = "=0.1.10" }
+# `solana_program::hash::hashv` modular replacement (claim instruction's
+# merkle-leaf node hash + merkle_proof::verify chain).
+solana-sha256-hasher = "3"
+solana-security-txt = "1.1.1"

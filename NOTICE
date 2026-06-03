@@ -1,0 +1,92 @@
+cf-invariants-jito-priorityfee
+Copyright 2026 CaliperForge
+
+This product includes software developed by CaliperForge
+(https://caliperforge.com).
+
+------------------------------------------------------------------------
+Third-party attributions
+------------------------------------------------------------------------
+
+This repository includes a modified copy of code originally distributed
+by the Jito Foundation as part of the `jito-foundation/jito-programs`
+project (https://github.com/jito-foundation/jito-programs), specifically
+the `priority-fee-distribution` program and the
+`jito-programs-vote-state` helper crate that it depends on.
+
+The upstream code is licensed under the Apache License, Version 2.0:
+
+    Copyright 2024 Jito Foundation
+    Licensed under the Apache License, Version 2.0.
+    https://github.com/jito-foundation/jito-programs
+
+Modifications relative to upstream
+----------------------------------
+
+1. `programs/priority-fee-distribution/` — a port of
+   `jito-priority-fee-distribution` from `anchor-lang` `0.31.1` to
+   `anchor-lang` `1.0.1` for use as the cf-invariants-jito-priorityfee
+   harness target. Build-system and dependency surfaces were updated:
+
+   - Upstream `solana-program = "2.2"` is dropped from direct deps.
+     anchor-lang 1.0.1 supplies the bulk of the modular solana-3.x
+     interfaces transitively (`clock`, `system_instruction`, `program`,
+     etc.). The `anchor_lang::solana_program` shim is brought into scope
+     inside the `#[program]` module so the upstream `solana_program::*`
+     call sites continue to resolve without rewrites.
+   - Upstream `solana_program::hash::hashv` is replaced with
+     `solana-sha256-hasher = "3"` (the modular crate that anchor-lang
+     1.0.1's shim no longer re-exports). This affects the `claim`
+     instruction's merkle-leaf node hash + `merkle_proof::verify`'s
+     intermediate-hash chain (`as &[u8]` slice coercions added there to
+     unify hashv's slice element types). Precedent: cf-invariants-jito
+     `tip-distribution` port.
+   - Upstream `solana_program::native_token::lamports_to_sol` (used in
+     one `msg!` line inside `transfer_priority_fee_tips`'s not-live-yet
+     branch) is replaced with a one-line local helper at module-root,
+     `lamports as f64 / 1_000_000_000_f64`, matching the standalone
+     `solana-native-token` crate's `LAMPORTS_PER_SOL = 1_000_000_000`
+     definition. The helper lives outside `#[program] pub mod ...` so
+     Anchor's instruction-registration macro does not see it.
+
+   The program logic — initialize / initialize_priority_fee_distribution_account
+   / update_config / upload_merkle_root / close_claim_status /
+   close_priority_fee_distribution_account / claim /
+   initialize_merkle_root_upload_config /
+   update_merkle_root_upload_config /
+   migrate_tda_merkle_root_upload_authority / transfer_priority_fee_tips
+   — is preserved.
+
+2. `programs/vote-state/` — a vendored copy of upstream's
+   `jito-programs-vote-state` crate (used by the
+   `initialize_priority_fee_distribution_account` instruction to
+   deserialize the validator vote account's node pubkey). Identical
+   port pattern as the cf-invariants-jito `vote-state` vendored crate
+   (anchor-lang `=1.0.1`, `solana-sdk-ids = "3"`); 21 LOC of upstream
+   source preserved unchanged.
+
+3. `references/jito_pfd_ref/` — a clean baseline copy of the ported
+   `priority-fee-distribution` + `vote-state` programs plus a Crucible
+   fuzz fixture (`fuzz/jito_transfer_priority_fee_total`) authored by
+   CaliperForge. The fuzz-fixture sources are CaliperForge-authored
+   harness code, not upstream code.
+
+4. `references/jito_pfd_ref_planted_transfer_increments_total/` — a
+   CaliperForge-authored "planted-bug" variant of the clean reference.
+   It introduces a single-site logic regression into
+   `transfer_priority_fee_tips` (dropping the
+   `ctx.accounts.priority_fee_distribution_account
+       .increment_total_lamports_transferred(lamports)?;`
+   call) so the Crucible harness can prove the corresponding invariant
+   class fires (`planted >= 1` violation) while the clean reference
+   holds (`clean = 0` violations). The planted modification is described
+   in `README.md` and visible as a diff against
+   `references/jito_pfd_ref/`.
+
+All files derived from the Jito upstream remain under Apache License,
+Version 2.0. CaliperForge-authored files (harness, fuzz fixtures, CI,
+README, this NOTICE) are likewise licensed under Apache License,
+Version 2.0 per the LICENSE file at the repository root.
+
+The Jito Foundation does not endorse this project. This harness is
+maintained independently by CaliperForge.
