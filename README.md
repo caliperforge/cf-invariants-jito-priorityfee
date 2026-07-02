@@ -1,5 +1,7 @@
 # cf-invariants-jito-priorityfee
 
+[![ci](https://github.com/caliperforge/cf-invariants-jito-priorityfee/actions/workflows/ci.yml/badge.svg)](https://github.com/caliperforge/cf-invariants-jito-priorityfee/actions/workflows/ci.yml)
+
 **An invariant-fuzzing harness for the [Jito priority-fee-distribution program](https://github.com/jito-foundation/jito-programs/tree/master/mev-programs/programs/priority-fee-distribution), run on [Crucible](https://github.com/asymmetric-research/crucible).**
 
 cf-invariants-jito-priorityfee is a focused harness, not a new fuzzer.
