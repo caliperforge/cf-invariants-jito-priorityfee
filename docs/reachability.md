@@ -45,8 +45,8 @@ For this planted class the spike adds:
    `keypair_from_rng(rng)` scaffolding (copy verbatim from the
    Solana atlas reference implementation), followed by the
    class-specific deterministic sequence:
-   - transfer_increments_total: initialize priority-fee vault →
-     transfer(amount) → assert Δ vault_total == amount.
+   - transfer_increments_total: initialize priority-fee vault ->
+     transfer(amount) -> assert Δ vault_total == amount.
 4. When `REACHABILITY_SEED` is absent, fallback to fixed values so
    normal `cargo run --release --bin regression` remains
    developer-friendly.
@@ -57,9 +57,9 @@ the right instruction order + account setup.
 
 ## What lands today
 
-- `ci/reachability_seeds.txt` — canonical 16-seed set (byte-identical
+- `ci/reachability_seeds.txt` : canonical 16-seed set (byte-identical
   to sibling repos).
-- `docs/reachability.md` — this file.
+- `docs/reachability.md` : this file.
 
 No workflow changes; no README verdict block.
 
